@@ -1,60 +1,115 @@
 /**
  * Custom Gviz controls.
  */
+domutil = {};
 
-var createElem_ = function(tag, opts) {
-  var element = document.createElement(tag);
-  for (var opt in opts) {
-    if (['innerHTML'].indexOf(opt) != -1) {
-      element[opt] = opts[opt];
-    } else {
-      element.setAttribute(opt, opts[opt]);
+domutil.createElem = function(tag, opts) {
+    var element = document.createElement(tag);
+    for (var opt in opts) {
+        if (['innerHTML', 'onclick'].indexOf(opt) != -1) {
+            element[opt] = opts[opt];
+        } else {
+            element.setAttribute(opt, opts[opt]);
+        }
     }
-  }
-  return element;
+    return element;
 }
 
+/**
+ * UI controller for column filter
+ *
+ * @param {element} container in dom
+ * @param {String} type 'multi' or 'single' selection
+ * @param {Object} config for UI values
+ * @param {Function} cb callback on click of ui element
+ */
+var ColumnFilterUi = function(container, type, config, cb) {
+    this.container_ = container;
+    this.type_ = type;
+    this.config_ = config;
+    this.cb_ = cb;
+    return this;
+};
+
+/**
+ * Draw UI.
+ */
+ColumnFilterUi.prototype.draw = function() {
+  // build UI
+  var self = this;
+  for (var i=0;i<this.config_.length;i++) {
+      var cfg = this.config_[i];
+      var div = domutil.createElem('div');
+      var selectorOpts = {
+        type: 'radio',
+        value: cfg.value,
+        name: 'dt-filter',
+        onclick: function() {self.cb_(this.value, this)}
+      };
+      if (cfg.checked) {
+        selectorOpts['checked'] = true;
+      }
+      // create radio and label
+      var radio = domutil.createElem('input', selectorOpts);
+      var label = domutil.createElem('label', {innerHTML: cfg.label});
+
+      // build div and draw
+      div.appendChild(radio);
+      div.appendChild(label);
+      this.container_.appendChild(div);
+  }
+}
+
+/**
+ * Controller for column filter
+ *
+ * @param {element} container in dom
+ */
 var ColumnFilter = function(container) {
-  this.container_ = container;
-  this.datatable_ = null;
-  this.elementType_ = 'input';
+    this.container_ = container;
+    this.datatable_ = null;
 };
 
-ColumnFilter.prototype.draw = function(datatable, options, state) {
-  this.datatable_ = datatable;
-  this.opts_ = options;
-  this.opts_.current = this.opts_.filterableColumns[this.opts_.filterableColumns.length-1]
-  var self = this;
-  var c = this.opts_.filterableColumns;
+/**
+ * Draw our  filter UI
+ *
+ * @param {google.visualization.DataTable} datatable
+ * @param {Object} options for config
+ * @param {Object} state of filter
+ */
+ColumnFilter.prototype.draw = function (datatable, options, state) {
+    this.datatable_ = datatable;
+    this.opts_ = options;
+    this.fc_ = this.opts_.filterableColumns;
+    this.st_ = state;
+    var self = this;
 
-  for (var i=0;i<c.length;i++) {
-    var div = createElem_('div');
-    var radio = createElem_(
-      this.elementType_, {type: 'radio', value: c[i], name: 'dt-filter', checked:'true'});
-    var label = createElem_(
-      'label', {innerHTML: this.datatable_.getColumnLabel(c[i])});
-
-    radio.onclick = function() {
-      self.opts_.current = this.value;
-      google.visualization.events.trigger(self, 'ready', null);
-    };
-
-    div.appendChild(radio);
-    div.appendChild(label);
-    this.container_.appendChild(div);
-  }
-  google.visualization.events.trigger(self, 'ready', null);
-};
-
-ColumnFilter.prototype.applyOperator = function() {
-  var self = this;
-  var dv = new google.visualization.DataView(this.datatable_);
-  var b = [];
-  for (var i=0;i<this.opts_.filterableColumns.length;i++) {
-    if (this.opts_.filterableColumns[i] != this.opts_.current) {
-      b.push(this.opts_.filterableColumns[i]);
+    var cfg = [];
+    for (var i = 0; i<this.fc_.length; i++) {
+      cfg.push({
+        label: this.datatable_.getColumnLabel(this.fc_[i]),
+        value: this.fc_[i],
+        checked: (this.st_.selectedValues == this.fc_[i])
+      });
     }
-  }
-  dv.hideColumns(b);
-  return dv;
+
+    var selectCallback = function(value) {
+        self.st_.selectedValues = value;
+        google.visualization.events.trigger(self, 'ready', null);
+    }
+
+    var cfui = new ColumnFilterUi(
+      this.container_, 'single', cfg, selectCallback).draw();
+
+    google.visualization.events.trigger(self, 'ready', null);
+};
+
+ColumnFilter.prototype.applyOperator = function () {
+    var self = this;
+    var cols = this.fc_.filter(function(v) {
+      return v != self.st_.selectedValues;
+    });
+    var dv = new google.visualization.DataView(this.datatable_);
+    dv.hideColumns(cols);
+    return dv;
 };
