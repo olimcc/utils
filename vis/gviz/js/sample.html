@@ -22,93 +22,82 @@ Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
 
         // Prepare the data
         var data = google.visualization.arrayToDataTable([
-          ['Name', 'Gender', 'Age', 'Donuts eaten'],
-          ['Michael' , 'Male', 12, 5],
-          ['Elisa', 'Female', 20, 7],
-          ['Robert', 'Male', 7, 3],
-          ['John', 'Male', 54, 2],
-          ['Jessica', 'Female', 22, 6],
-          ['Aaron', 'Male', 3, 1],
-          ['Margareth', 'Female', 42, 8],
-          ['Miranda', 'Female', 33, 6]
+          ['Name', 'Dept', 'Day', 'Income', 'Expense'],
+          ['Michael' , 'Accts', '2011-01-04', 12, 5],
+          ['Elisa', 'Accts', '2011-01-05', 20, 70],
+          ['Peter', 'Accts', '2011-01-06', 36, 43],
+          ['Robert', 'Marketing', '2011-01-04', 37, 23],
+          ['John', 'Marketing', '2011-01-05', 54, 29],
+          ['Alice', 'Marketing', '2011-01-06', 44, 29],
+          ['Jessica', 'Eng', '2011-01-04', 22, 6],
+          ['Aaron', 'Eng', '2011-01-05', 3, 1],
+          ['Margareth', 'Eng', '2011-01-06', 42, 8],
         ]);
 
         // Define a category picker control for the Gender column
+        // This is a standard gviz filter
         var categoryPicker = new google.visualization.ControlWrapper({
           'controlType': 'CategoryFilter',
           'containerId': 'control2',
           'options': {
-            'filterColumnLabel': 'Gender',
+            'filterColumnLabel': 'Dept',
             'ui': {
             'labelStacking': 'vertical',
               'allowTyping': false,
-              'allowMultiple': false
+              'allowMultiple': true
             }
           }
         });
 
+        // Define a column filter, to filter the visible column in a table
+        // This is a custom gviz filter
         var columnFilter = new google.visualization.ControlWrapper({
           'controlType': 'ColumnFilter',
           'containerId': 'columnfilter',
           'options': {
-            'filterableColumns': [2, 3],
+            'filterableColumns': [3, 4],
             'ui': {
-              allowMultiple: false,
+              'allowMultiple': false,
             }
           },
           'state': {
-            selectedValues: 2
+            'selectedValues': 3
           }
         });
 
+        // Define a pivot aggregator, to pivot values
+        // This is a custom gviz filter
         var pivotAgg = new google.visualization.ControlWrapper({
           'controlType': 'PivotOperator',
           'containerId': 'control3',
           'options': {
-            pivotColumnIndex: {
-              column: 1,
-              aggregator: google.visualization.data.sum
+            'pivotColumnIndex': {
+              'column': 1,
+              'aggregator': google.visualization.data.sum,
+              'sortDesc': true
             },
-            pivotKeyIndexes: [{column: 0}],
-            pivotValueIndex: {column: 2},
-            summaryColumns: [{label: 'Total', aggregator: google.visualization.data.sum}]
+            'pivotKeyIndexes': [{column: 2}],
+            'pivotValueIndex': {column: 3}
           },
         });
 
-        // Define a Pie chart
-        /*
-        var pie = new google.visualization.ChartWrapper({
-          'chartType': 'PieChart',
-          'containerId': 'chart1',
-          'options': {
-            'width': 300,
-            'height': 300,
-            'legend': 'none',
-            'title': 'Donuts eaten per person',
-            'chartArea': {'left': 15, 'top': 15, 'right': 0, 'bottom': 0},
-            'pieSliceText': 'label'
-          },
-          // Instruct the piechart to use colums 0 (Name) and 3 (Donuts Eaten)
-          // from the 'data' DataTable.
-          'view': {'columns': [0, 1]}
-        });
-        */
 
         // Define a table
         var table = new google.visualization.ChartWrapper({
           'chartType': 'Table',
-          'containerId': 'chart2',
+          'containerId': 'chart1',
           'options': {
             'width': '300px'
           }
         });
 
-        // Define a table
-        var pivotTable = new google.visualization.ChartWrapper({
-          'chartType': 'Table',
-          'containerId': 'chart3',
+        // Define a pivot linechart
+        var lineChart = new google.visualization.ChartWrapper({
+          'chartType': 'LineChart',
+          'containerId': 'chart2',
           'options': {
-            'width': '300px'
+            'width': '300px',
+            'legend': {position: 'bottom'}
           }
         });
 
@@ -116,7 +105,7 @@ Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
         new google.visualization.Dashboard(document.getElementById('dashboard')).
             bind(columnFilter, categoryPicker).
             bind(categoryPicker, [table, pivotAgg]).
-            bind(pivotAgg, pivotTable).
+            bind(pivotAgg, lineChart).
             draw(data);
       }
 
@@ -136,8 +125,7 @@ Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
           </td>
           <td style='width: 900px'>
             <div style="float: left;" id="chart1"></div>
-            <div style="float: left;" id="chart2"></div>
-            <div style="float: left; margin-left: 10px" id="chart3"></div>
+            <div style="float: left; margin-left: 10px" id="chart2"></div>
           </td>
         </tr>
       </table>
