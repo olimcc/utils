@@ -4,7 +4,7 @@
  *
  * Filters added:
  * 1. ColumnFilter: Allow a user to toggle between visible column
- * 2. PivotOperator: Perform a pivot operation between visualizations.
+ * 2. PivotOperator: Perform a pivot operation between visualizations
  *
  * Controls can take one of two forms:
  *  - Visible Control: Controls that render a UI of some form, and apply
@@ -28,77 +28,20 @@
  *    }
  */
 
-
 /**
- * Base class for UI elements
- */
-var BaseUI = function() {}
-
-BaseUI.prototype.createElem = function(tag, opts) {
-    var element = document.createElement(tag);
-    for (var opt in opts) {
-        if (['innerHTML', 'onclick'].indexOf(opt) != -1) {
-            element[opt] = opts[opt];
-        } else {
-            element.setAttribute(opt, opts[opt]);
-        }
-    }
-    return element;
-}
-
-/**
- * UI controller for column filter
+ * Controller for column filter.
  *
- * @param {element} container in dom
- */
-var ColumnFilterUi = function(container) {
-    this.container_ = container;
-    return this;
-};
-
-/* Inherit */
-ColumnFilterUi.prototype = new BaseUI();
-
-/**
- * Draw UI.
- * @param {String} type 'multi' or 'single' selection
- * @param {Object} config for UI values
- * @param {Function} cb callback on click of ui element
- */
-ColumnFilterUi.prototype.draw = function(type, config, cb) {
-  // build UI
-  this.type_ = type;
-  this.config_ = config;
-  this.cb_ = cb;
-  var self = this;
-
-  for (var i=0;i<this.config_.length;i++) {
-      var cfg = this.config_[i];
-      var div = this.createElem('div');
-      var selectorOpts = {
-        type: 'radio',
-        value: cfg.value,
-        name: 'dt-filter',
-        onclick: function() {self.cb_(this.value, this)}
-      };
-      if (cfg.checked) {
-        selectorOpts['checked'] = true;
-      }
-      // create radio and label
-      var radio = this.createElem('input', selectorOpts);
-      var label = this.createElem('label', {innerHTML: cfg.label});
-
-      // build div and draw
-      div.appendChild(radio);
-      div.appendChild(label);
-      this.container_.appendChild(div);
-  }
-}
-
-/**
- * Controller for column filter
+ * A column filter facilitates the selection between the display of certain
+ * columns in a visualization.
+ * Options:
+ *  filterableColumns: <Array> column indexes to choose between
+ * State:
+ *  selectedValues: <Number> column index to default to
  *
- * @param {element} container in dom
+ * Sample use case: Allowing a user to toggle between the display of certain
+ * columns in a line chart to reduce noise.
+ *
+ * @param {element} container
  */
 var ColumnFilter = function(container) {
     this.container_ = container;
@@ -153,9 +96,85 @@ ColumnFilter.prototype.applyOperator = function () {
     return dv;
 };
 
+/**
+ * Base class for UI elements.
+ * @todo(olimcc) potentially too elaborate
+ */
+var BaseUI = function() {}
+
+BaseUI.prototype.createElem = function(tag, opts) {
+    var element = document.createElement(tag);
+    for (var opt in opts) {
+        if (['innerHTML', 'onclick'].indexOf(opt) != -1) {
+            element[opt] = opts[opt];
+        } else {
+            element.setAttribute(opt, opts[opt]);
+        }
+    }
+    return element;
+}
+
+/**
+ * UI controller for column filter
+ *
+ * Facilitates rendering of radio fields in conjunction with ColumnFilter.
+ *
+ * @param {element} container in dom
+ */
+var ColumnFilterUi = function(container) {
+    this.container_ = container;
+    return this;
+};
+
+/* Inherit */
+ColumnFilterUi.prototype = new BaseUI();
+
+/**
+ * Draw UI.
+ * @param {String} type 'multi' or 'single' selection
+ * @param {Object} config for UI values
+ * @param {Function} cb callback on click of ui element
+ */
+ColumnFilterUi.prototype.draw = function(type, config, cb) {
+  // build UI
+  this.type_ = type;
+  this.config_ = config;
+  this.cb_ = cb;
+  var self = this;
+
+  for (var i=0;i<this.config_.length;i++) {
+      var cfg = this.config_[i];
+      var div = this.createElem('div');
+      var selectorOpts = {
+        type: 'radio',
+        value: cfg.value,
+        name: 'dt-filter',
+        onclick: function() {self.cb_(this.value, this)}
+      };
+      if (cfg.checked) {
+        selectorOpts['checked'] = true;
+      }
+      // create radio and label
+      var radio = this.createElem('input', selectorOpts);
+      var label = this.createElem('label', {innerHTML: cfg.label});
+
+      // build div and draw
+      div.appendChild(radio);
+      div.appendChild(label);
+      this.container_.appendChild(div);
+  }
+}
+
 
 /**
  * A gvizpivot.PivotTable() operator wrapper.
+ *
+ * Facilitates pivoting values in a datatable before sending to the next
+ * visualization.
+ *
+ * Sample use case: A column holds multiple categories, a second column holds
+ *  values for each row. You would like to convert categories in the single
+ *  column to individual, aggregated columns before sending to a linechart/table.
  */
 var PivotOperator = function(container) {
   if (!gvizpivot) {
