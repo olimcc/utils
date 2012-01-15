@@ -1,4 +1,3 @@
-
 /**
  * Base class for UI elements
  */
@@ -76,7 +75,7 @@ var ColumnFilter = function(container) {
 };
 
 /**
- * Draw our  filter UI
+ * Set up our filter.
  *
  * @param {google.visualization.DataTable} datatable
  * @param {Object} options for config
@@ -123,17 +122,49 @@ ColumnFilter.prototype.applyOperator = function () {
     return dv;
 };
 
+
+/**
+ * A gvizpivot.PivotTable() operator wrapper.
+ */
 var PivotOperator = function(container) {
+  if (!gvizpivot) {
+    throw('Could not find the gvizpivot library.')
+  }
   this.container_ = container;
 }
 
+/**
+ * Set up our operator.
+ *
+ * @param {google.visualization.DataTable} datatable
+ * @param {Object} options for config
+ * @param {Object} state of filter
+ *
+ * Note:
+ *   `options` expects a full configuration for a pivottable
+ *   as detailed here: https://github.com/olimcc/gviz-pivottable
+ *   It also accepts an optional entry: preDrawCallback
+ *   If this key is provided, the returned DataTable will be passed to this
+ *   function before drawing. This callback should return the DataTable.
+ */
 PivotOperator.prototype.draw = function (datatable, options, state) {
-
-
+  this.datatable_ = datatable;
+  this.options_ = options;
+  google.visualization.events.trigger(this, 'ready', null);
 }
-ColumnFilter.prototype.applyOperator = function () {
 
-}
+/* Apply */
+PivotOperator.prototype.applyOperator = function() {
+  var pivot = new gvizpivot.PivotAgg(
+      this.datatable_,
+      this.options_);
+  var res = pivot.getDataTable();
+  if (this.options_.preDrawCallback) {
+    return this.options_.preDrawCallback(pivot.getDataTable());
+  } else {
+    return pivot.getDataTable();
+  }
+};
 
 
 

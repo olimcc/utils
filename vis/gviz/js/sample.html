@@ -11,6 +11,7 @@ Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
       Google Visualization API Sample
     </title>
     <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="https://raw.github.com/olimcc/gviz-pivottable/master/pivot2.js"></script>
     <script type="text/javascript" src="controls.js"></script>
     <script type="text/javascript">
       google.load('visualization', '1.1', {packages: ['controls']});
@@ -18,7 +19,6 @@ Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
     <script type="text/javascript">
 
       function drawVisualization() {
-
 
         // Prepare the data
         var data = google.visualization.arrayToDataTable([
@@ -61,6 +61,20 @@ Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
           }
         });
 
+        var pivotAgg = new google.visualization.ControlWrapper({
+          'controlType': 'PivotOperator',
+          'containerId': 'control3',
+          'options': {
+            pivotColumnIndex: {
+              column: 1,
+              aggregator: google.visualization.data.sum
+            },
+            pivotKeyIndexes: [{column: 0}],
+            pivotValueIndex: {column: 2},
+            summaryColumns: [{label: 'Total', aggregator: google.visualization.data.sum}]
+          },
+        });
+
         // Define a Pie chart
         /*
         var pie = new google.visualization.ChartWrapper({
@@ -89,10 +103,20 @@ Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
           }
         });
 
+        // Define a table
+        var pivotTable = new google.visualization.ChartWrapper({
+          'chartType': 'Table',
+          'containerId': 'chart3',
+          'options': {
+            'width': '300px'
+          }
+        });
+
         // Create a dashboard
         new google.visualization.Dashboard(document.getElementById('dashboard')).
             bind(columnFilter, categoryPicker).
-            bind(categoryPicker, table).
+            bind(categoryPicker, [table, pivotAgg]).
+            bind(pivotAgg, pivotTable).
             draw(data);
       }
 
@@ -107,11 +131,13 @@ Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
           <td style='width: 300px; font-size: 0.9em;'>
             <div id="control1"></div>
             <div id="control2"></div>
+            <div id="control3"></div>
             <div id="columnfilter"></div>
           </td>
-          <td style='width: 600px'>
+          <td style='width: 900px'>
             <div style="float: left;" id="chart1"></div>
             <div style="float: left;" id="chart2"></div>
+            <div style="float: left; margin-left: 10px" id="chart3"></div>
           </td>
         </tr>
       </table>
