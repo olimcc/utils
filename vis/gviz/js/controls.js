@@ -20,19 +20,20 @@ BaseUI.prototype.createElem = function(tag, opts) {
  * UI controller for column filter
  *
  * @param {element} container in dom
- * @param {String} type 'multi' or 'single' selection
- * @param {Object} config for UI values
- * @param {Function} cb callback on click of ui element
  */
 var ColumnFilterUi = function(container) {
     this.container_ = container;
     return this;
 };
 
+/* Inherit */
 ColumnFilterUi.prototype = new BaseUI();
 
 /**
  * Draw UI.
+ * @param {String} type 'multi' or 'single' selection
+ * @param {Object} config for UI values
+ * @param {Function} cb callback on click of ui element
  */
 ColumnFilterUi.prototype.draw = function(type, config, cb) {
   // build UI
@@ -121,3 +122,18 @@ ColumnFilter.prototype.applyOperator = function () {
     dv.hideColumns(cols);
     return dv;
 };
+
+var PivotOperator = function(container) {
+  this.container_ = container;
+}
+
+PivotOperator.prototype.draw = function (datatable, options, state) {
+
+
+}
+ColumnFilter.prototype.applyOperator = function () {
+
+}
+
+
+

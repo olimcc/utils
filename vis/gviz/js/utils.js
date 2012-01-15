@@ -1,5 +1,5 @@
 /* Gviz helpers */
-var vis = viz || {};
+var vis = vis || {};
 vis.helpers = {};
 
 /* sum array */
