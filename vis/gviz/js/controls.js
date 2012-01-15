@@ -1,9 +1,10 @@
-/**
- * Custom Gviz controls.
- */
-domutil = {};
 
-domutil.createElem = function(tag, opts) {
+/**
+ * Base class for UI elements
+ */
+var BaseUI = function() {}
+
+BaseUI.prototype.createElem = function(tag, opts) {
     var element = document.createElement(tag);
     for (var opt in opts) {
         if (['innerHTML', 'onclick'].indexOf(opt) != -1) {
@@ -23,23 +24,26 @@ domutil.createElem = function(tag, opts) {
  * @param {Object} config for UI values
  * @param {Function} cb callback on click of ui element
  */
-var ColumnFilterUi = function(container, type, config, cb) {
+var ColumnFilterUi = function(container) {
     this.container_ = container;
-    this.type_ = type;
-    this.config_ = config;
-    this.cb_ = cb;
     return this;
 };
+
+ColumnFilterUi.prototype = new BaseUI();
 
 /**
  * Draw UI.
  */
-ColumnFilterUi.prototype.draw = function() {
+ColumnFilterUi.prototype.draw = function(type, config, cb) {
   // build UI
+  this.type_ = type;
+  this.config_ = config;
+  this.cb_ = cb;
   var self = this;
+
   for (var i=0;i<this.config_.length;i++) {
       var cfg = this.config_[i];
-      var div = domutil.createElem('div');
+      var div = this.createElem('div');
       var selectorOpts = {
         type: 'radio',
         value: cfg.value,
@@ -50,8 +54,8 @@ ColumnFilterUi.prototype.draw = function() {
         selectorOpts['checked'] = true;
       }
       // create radio and label
-      var radio = domutil.createElem('input', selectorOpts);
-      var label = domutil.createElem('label', {innerHTML: cfg.label});
+      var radio = this.createElem('input', selectorOpts);
+      var label = this.createElem('label', {innerHTML: cfg.label});
 
       // build div and draw
       div.appendChild(radio);
@@ -92,18 +96,22 @@ ColumnFilter.prototype.draw = function (datatable, options, state) {
         checked: (this.st_.selectedValues == this.fc_[i])
       });
     }
-
+    // should be triggered on selection in UI
     var selectCallback = function(value) {
         self.st_.selectedValues = value;
         google.visualization.events.trigger(self, 'ready', null);
     }
-
-    var cfui = new ColumnFilterUi(
-      this.container_, 'single', cfg, selectCallback).draw();
+    // start our UI
+    var cfui = new ColumnFilterUi(this.container_).
+                   draw('single', cfg, selectCallback);
 
     google.visualization.events.trigger(self, 'ready', null);
 };
 
+/**
+ * Process and return a set of data. Called on change, or when a feeding
+ * control changes.
+ */
 ColumnFilter.prototype.applyOperator = function () {
     var self = this;
     var cols = this.fc_.filter(function(v) {
