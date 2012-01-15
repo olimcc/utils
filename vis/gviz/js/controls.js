@@ -1,4 +1,35 @@
 /**
+ * Additional Google Visualization control elements to add to the standard
+ * packages made available by Gviz Controls and Dashboards.
+ *
+ * Filters added:
+ * 1. ColumnFilter: Allow a user to toggle between visible column
+ * 2. PivotOperator: Perform a pivot operation between visualizations.
+ *
+ * Controls can take one of two forms:
+ *  - Visible Control: Controls that render a UI of some form, and apply
+ *    changes to a table based on user selection. Generally filters values in
+ *    a single column, but DataTable structure remains unchanged.
+ *  - Operator: Applys a change to the format of a datatable between
+ *    visualizations. May not neccessarily filter based on columns, but may
+ *    perform some type of aggregation, grouping, or row/column attribute
+ *    changes.
+ *
+ * The standard method for adding your own controls looks roughly like this:
+ *    var MyControl = function(container) {};
+ *    MyControl.prototype.draw = function (datatable, options, state) {
+ *        // Draw UI elements, attach handlers etc
+ *        google.visualization.events.trigger(self, 'ready', null);
+ *    };
+ *    MyControl.prototype.applyOperator = function() {
+ *      // Perform updates/filters on DataTable before returning
+ *      // Called each time a change is triggered/flows through dashboard.
+ *      return this.datatable;
+ *    }
+ */
+
+
+/**
  * Base class for UI elements
  */
 var BaseUI = function() {}
